@@ -181,5 +181,129 @@
 
     window.addEventListener('pagehide', hentikanKamera);
   </script>
+  
+<script>
+const APPS_SCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbzFtMhNUJWig-gODHASqm6gexGALNbeW1zJjpVpXxIRQiKtT0nIwgttzz6_Q4NUexwp/exec';
+
+let sedangMemprosesQR = false;
+
+function tampilkanHasilScan(pesan, berhasil = false) {
+  // Buat elemen hasil bila belum ada.
+  let hasil = document.getElementById('hasilScan');
+
+  if (!hasil) {
+    hasil = document.createElement('div');
+    hasil.id = 'hasilScan';
+    hasil.style.padding = '12px';
+    hasil.style.marginTop = '12px';
+    hasil.style.borderRadius = '8px';
+    hasil.style.background = '#f1f5f9';
+    hasil.style.color = '#111827';
+
+    const kamera = document.querySelector('video');
+
+    if (kamera && kamera.parentElement) {
+      kamera.parentElement.appendChild(hasil);
+    } else {
+      document.body.appendChild(hasil);
+    }
+  }
+
+  hasil.textContent = pesan;
+  hasil.style.border = berhasil
+    ? '1px solid #16a34a'
+    : '1px solid #dc2626';
+}
+
+function kirimQRKeAppsScript(isiQR) {
+  if (sedangMemprosesQR) return;
+
+  const bagian = String(isiQR || '').trim().split('|');
+
+  if (bagian.length !== 2 ||
+      !bagian[0].trim() ||
+      !bagian[1].trim()) {
+    tampilkanHasilScan(
+      'QR tidak sesuai format ID_PESERTA|TOKEN_QR.'
+    );
+    return;
+  }
+
+  const id = bagian[0].trim();
+  const token = bagian[1].trim();
+
+  sedangMemprosesQR = true;
+  tampilkanHasilScan('Memvalidasi peserta...');
+
+  const namaCallback =
+    'hasilScanCallback_' +
+    Date.now() + '_' +
+    Math.random().toString(36).slice(2);
+
+  let script = null;
+  let timeout = null;
+
+  function bersihkan() {
+    if (timeout) clearTimeout(timeout);
+    if (script) script.remove();
+
+    try {
+      delete window[namaCallback];
+    } catch (_) {
+      window[namaCallback] = undefined;
+    }
+
+    sedangMemprosesQR = false;
+  }
+
+  window[namaCallback] = function(data) {
+    bersihkan();
+
+    if (!data || !data.sukses) {
+      tampilkanHasilScan(
+        data && data.pesan
+          ? data.pesan
+          : 'Validasi gagal. Silakan coba kembali.'
+      );
+      return;
+    }
+
+    tampilkanHasilScan(
+      (data.nama ? data.nama + ' — ' : '') +
+      data.pesan +
+      (data.waktu ? ' Waktu: ' + data.waktu : ''),
+      true
+    );
+  };
+
+  const params = new URLSearchParams({
+    action: 'scanAttendance',
+    id: id,
+    token: token,
+    callback: namaCallback
+  });
+
+  script = document.createElement('script');
+  script.src = APPS_SCRIPT_URL + '?' + params.toString();
+
+  script.onerror = function() {
+    bersihkan();
+    tampilkanHasilScan(
+      'Tidak dapat menghubungi Apps Script. Periksa deployment dan koneksi.'
+    );
+  };
+
+  timeout = setTimeout(function() {
+    bersihkan();
+    tampilkanHasilScan(
+      'Permintaan terlalu lama. Periksa koneksi dan deployment Apps Script.'
+    );
+  }, 20000);
+
+  document.head.appendChild(script);
+}
+</script>
+
 </body>
 </html>
