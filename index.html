@@ -5,6 +5,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Scanner Kehadiran DAPODIK Langkat 2026</title>
+
+/* Memastikan kamera dan identitas berdampingan di laptop */
+@media (min-width: 801px) {
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.03fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .layout > .camera-card,
+  .layout > .person-card {
+    min-width: 0;
+    width: 100%;
+  }
+}
+  
 <style>
 :root {
   --green:#075b40;
