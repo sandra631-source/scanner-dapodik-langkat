@@ -366,6 +366,11 @@ function kirimQRKeAppsScript(isiQR) {
     setStatus('QR berhasil diproses.');
     setJudul(data.pesan || 'Data peserta ditemukan', 'ok');
 
+    // Suara hanya untuk peserta yang baru berhasil absen.
+    if (data.sukses && !data.sudahHadir) {
+      suaraTerimaKasih(data.nama);
+    }
+
     // Hindari pemindaian QR yang sama berulang kali.
     if (resetQR) clearTimeout(resetQR);
     resetQR = setTimeout(() => { qrTerakhir = ''; }, 3000);
@@ -434,6 +439,32 @@ document.getElementById('stop').onclick = function() {
 };
 
 window.addEventListener('pagehide',hentikanKamera);
+  function suaraTerimaKasih(namaPeserta) {
+  if (!('speechSynthesis' in window)) {
+    console.warn('Browser tidak mendukung suara otomatis.');
+    return;
+  }
+
+  const nama = String(namaPeserta || '').trim();
+
+  if (!nama) {
+    console.warn('Nama peserta tidak tersedia.');
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const ucapan = new SpeechSynthesisUtterance(
+    'Terima kasih, ' + nama + ', sudah hadir.'
+  );
+
+  ucapan.lang = 'id-ID';
+  ucapan.rate = 0.9;
+  ucapan.pitch = 1;
+  ucapan.volume = 1;
+
+  window.speechSynthesis.speak(ucapan);
+}
 </script>
 </body>
 </html>
