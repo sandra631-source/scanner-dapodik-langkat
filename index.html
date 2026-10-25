@@ -181,6 +181,32 @@ canvas { display:none; }
   .field { margin-bottom:12px; }
   .video-frame { min-height:190px; }
 }
+  
+/* Tampilan komputer: kamera dan identitas berdampingan */
+@media (min-width: 801px) {
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.03fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .layout > .camera-card,
+  .layout > .person-card {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* Tampilan HP: panel ditumpuk ke bawah */
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 </style>
 </head>
 <body>
@@ -199,55 +225,68 @@ canvas { display:none; }
     <span id="status">Scanner belum diaktifkan.</span>
   </div>
 
-  <div class="layout">
-    <section class="camera-card">
-      <div class="camera-top">▣ &nbsp; Kamera Scanner QR</div>
-      <div class="camera-wrap">
-        <div class="video-frame">
-          <video id="video" autoplay playsinline muted></video>
-          <div class="scan-guide"></div>
-        </div>
-        <div class="camera-controls">
-          <button id="start">▶ Aktifkan Kamera</button>
-          <button id="stop">■ Matikan Kamera</button>
-        </div>
+  <
+<div class="layout">
+  <!-- PANEL KAMERA SCANNER -->
+  <section class="camera-card">
+    <div class="camera-top">▣ &nbsp; Kamera Scanner QR</div>
+
+    <div class="camera-wrap">
+      <div class="video-frame">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="scan-guide"></div>
       </div>
-      <div class="camera-help">
-        Arahkan QR peserta ke dalam bingkai hijau. Data peserta akan tampil
-        otomatis setelah QR berhasil divalidasi.
+
+      <div class="camera-controls">
+        <button id="start">▶ Aktifkan Kamera</button>
+        <button id="stop">■ Matikan Kamera</button>
       </div>
-    </section>
-<    <section class="person-card">
-      <div id="judulHasil" class="person-heading">
-        Menunggu pemindaian QR peserta
-      </div>
-      <div class="person-content">
-        <div id="wadahFoto">
-          <div class="photo-placeholder">Foto peserta akan tampil di sini</div>
-        </div>
-        <div>
-          <div class="field">
-            <div class="label">ID PESERTA</div>
-            <div id="idPeserta" class="value">—</div>
-          </div>
-          <div class="field">
-            <div class="label">NAMA PESERTA</div>
-            <div id="nama" class="value">—</div>
-          </div>
-          <div class="field">
-            <div class="label">ASAL SEKOLAH</div>
-            <div id="sekolah" class="value">—</div>
-          </div>
-          <div class="field">
-            <div class="label">WAKTU ABSEN</div>
-            <div id="hasilWaktu" class="value">—</div>
-          </div>
+    </div>
+
+    <div class="camera-help">
+      Arahkan QR peserta ke dalam bingkai hijau. Data peserta akan tampil
+      otomatis setelah QR berhasil divalidasi.
+    </div>
+  </section>
+
+  <!-- PANEL IDENTITAS PESERTA -->
+  <section class="person-card">
+    <div id="judulHasil" class="person-heading">
+      Menunggu pemindaian QR peserta
+    </div>
+
+    <div class="person-content">
+      <div id="wadahFoto">
+        <div class="photo-placeholder">
+          Foto peserta akan tampil di sini
         </div>
       </div>
-    </section>
-  </div>
-  <canvas id="canvas"></canvas>
-</main>
+
+      <div>
+        <div class="field">
+          <div class="label">ID PESERTA</div>
+          <div id="idPeserta" class="value">—</div>
+        </div>
+
+        <div class="field">
+          <div class="label">NAMA PESERTA</div>
+          <div id="nama" class="value">—</div>
+        </div>
+
+        <div class="field">
+          <div class="label">ASAL SEKOLAH</div>
+          <div id="sekolah" class="value">—</div>
+        </div>
+
+        <div class="field">
+          <div class="label">WAKTU ABSEN</div>
+          <div id="hasilWaktu" class="value">—</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
