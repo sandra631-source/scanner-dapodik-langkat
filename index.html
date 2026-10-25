@@ -2,167 +2,353 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Scanner DAPODIK Langkat 2026</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 650px;
-      margin: 25px auto;
-      padding: 16px;
-      background: #f3f6f4;
-      color: #203328;
-    }
-    .panel {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px #0001;
-    }
-    h2 { color: #17643b; }
-    button {
-      padding: 12px 16px;
-      border: 0;
-      border-radius: 7px;
-      cursor: pointer;
-      font-weight: bold;
-      margin: 5px 3px 5px 0;
-    }
-    #start { background: #17643b; color: white; }
-    #stop { background: #b42318; color: white; }
-    video {
-      width: 100%;
-      background: #222;
-      border-radius: 8px;
-      margin-top: 12px;
-    }
-    #status, #hasil {
-      padding: 12px;
-      background: #f3f6f4;
-      border-radius: 7px;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
-    canvas { display: none; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scanner Kehadiran DAPODIK Langkat 2026</title>
+<style>
+:root {
+  --green:#075b40;
+  --green2:#08784f;
+  --bg:#f1f5f9;
+  --text:#172b3d;
+  --muted:#64748b;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  font-family:Arial, sans-serif;
+  color:var(--text);
+  background:var(--bg);
+}
+header {
+  background:linear-gradient(115deg,#064e3b,#08734f);
+  color:white;
+  padding:16px 24px;
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+.logo {
+  width:55px;height:55px;
+  border-radius:8px;
+  background:#ffffff18;
+  display:grid;place-items:center;
+  font-size:28px;flex-shrink:0;
+}
+header h1 { font-size:clamp(17px,2vw,25px);margin:0 0 6px; }
+header p { margin:0;font-size:13px;color:#d1fae5; }
+.online {
+  margin-left:auto;
+  background:#ffffff18;
+  border-radius:20px;
+  padding:9px 13px;
+  white-space:nowrap;
+  font-size:12px;
+}
+main {
+  max-width:1500px;
+  margin:auto;
+  padding:16px;
+}
+.statusbar {
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:12px;
+  padding:10px 14px;
+  background:white;border:1px solid #e2e8f0;
+  border-radius:10px;font-size:13px;
+}
+.dot { width:9px;height:9px;border-radius:50%;background:#94a3b8; }
+.dot.ok { background:#16a34a; }
+.layout {
+  display:grid;
+  grid-template-columns:minmax(0,1.03fr) minmax(0,1fr);
+  gap:16px;align-items:stretch;
+}
+.camera-card,.person-card {
+  background:white;border:1px solid #e2e8f0;
+  border-radius:13px;overflow:hidden;min-width:0;
+}
+.camera-top {
+  background:#142c35;color:white;
+  padding:13px 16px;font-weight:bold;
+  display:flex;align-items:center;gap:9px;
+}
+.camera-wrap {
+  background:#142c35;padding:12px;
+}
+.video-frame {
+  position:relative;background:#0f172a;
+  border-radius:8px;overflow:hidden;
+  aspect-ratio:4/3;
+  max-height:calc(100vh - 310px);
+  min-height:230px;
+  display:flex;align-items:center;justify-content:center;
+}
+video {
+  display:block;width:100%;height:100%;
+  object-fit:cover;
+}
+.scan-guide {
+  position:absolute;width:min(43%,220px);
+  aspect-ratio:1;border:3px solid #34d399;
+  border-radius:14px;pointer-events:none;
+  box-shadow:0 0 0 999px #0002;
+}
+.camera-controls {
+  display:flex;gap:8px;flex-wrap:wrap;
+  padding:12px 0 0;
+}
+button {
+  border:0;border-radius:7px;padding:11px 16px;
+  font-weight:bold;cursor:pointer;font-size:13px;
+}
+#start { background:#10b981;color:#052e22; }
+#stop { background:#e2e8f0;color:#334155; }
+button:disabled { opacity:.5;cursor:not-allowed; }
+.camera-help {
+  background:#142c35;color:#e2e8f0;
+  padding:0 16px 15px;font-size:12px;line-height:1.6;
+}
+.person-card { padding:18px; }
+.person-heading {
+  border-radius:8px;background:#f1f5f9;
+  padding:12px 14px;font-weight:bold;
+  margin-bottom:18px;font-size:14px;
+  display:flex;align-items:center;gap:9px;
+}
+.person-heading.success { background:#dcfce7;color:#166534; }
+.person-heading.error { background:#fee2e2;color:#991b1b; }
+.person-content {
+  display:grid;grid-template-columns:minmax(105px,30%) 1fr;
+  gap:18px;align-items:start;
+}
+.photo {
+  width:100%;aspect-ratio:3/4;object-fit:cover;
+  border-radius:8px;background:#e2e8f0;
+  border:1px solid #e2e8f0;
+}
+.photo-placeholder {
+  width:100%;aspect-ratio:3/4;border-radius:8px;
+  background:#e2e8f0;display:flex;align-items:center;
+  justify-content:center;color:#64748b;text-align:center;
+  font-size:12px;padding:10px;
+}
+.field { margin-bottom:17px;min-width:0; }
+.label {
+  font-size:11px;letter-spacing:.5px;
+  color:var(--muted);margin-bottom:6px;
+}
+.value {
+  font-size:clamp(14px,1.4vw,19px);
+  font-weight:bold;overflow-wrap:anywhere;line-height:1.35;
+}
+#idPeserta { font-size:clamp(13px,1.2vw,17px); }
+#sekolah { font-size:clamp(13px,1.2vw,16px); }
+#hasilWaktu { font-size:clamp(13px,1.2vw,16px); }
+canvas { display:none; }
+@media (max-width:800px) {
+  header { padding:13px; }
+  .logo { width:43px;height:43px; }
+  .online { font-size:11px;padding:7px; }
+  main { padding:10px; }
+  .layout { grid-template-columns:1fr; }
+  .video-frame { max-height:none;min-height:200px; }
+  .person-card { padding:14px; }
+}
+@media (min-width:801px) and (max-height:800px) {
+  header { padding:10px 20px; }
+  .logo { width:44px;height:44px; }
+  main { padding:10px 16px; }
+  .person-card { padding:14px; }
+  .person-heading { margin-bottom:12px;padding:10px; }
+  .field { margin-bottom:12px; }
+  .video-frame { min-height:190px; }
+}
+</style>
 </head>
 <body>
-  <div class="panel">
-    <h2>Scanner Absensi</h2>
-    <p>Sosialisasi DAPODIK Kabupaten Langkat 2026</p>
+<header>
+  <div class="logo" aria-hidden="true">📷</div>
+  <div>
+    <h1>SCANNER KEHADIRAN DAPODIK</h1>
+    <p>DINAS PENDIDIKAN KABUPATEN LANGKAT · 2026</p>
+  </div>
+  <div class="online">● ONLINE</div>
+</header>
 
-    <button id="start">Aktifkan Kamera</button>
-    <button id="stop">Matikan Kamera</button>
-
-    <p id="status">Scanner belum diaktifkan.</p>
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="canvas"></canvas>
-
-    <h3>Hasil Pembacaan QR</h3>
-    <div id="hasil">Belum ada QR yang dibaca.</div>
+<main>
+  <div class="statusbar">
+    <span id="statusDot" class="dot"></span>
+    <span id="status">Scanner belum diaktifkan.</span>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-  <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', {
-      willReadFrequently: true
-    });
-    const status = document.getElementById('status');
-    const hasil = document.getElementById('hasil');
+  <div class="layout">
+    <section class="camera-card">
+      <div class="camera-top">▣ &nbsp; Kamera Scanner QR</div>
+      <div class="camera-wrap">
+        <div class="video-frame">
+          <video id="video" autoplay playsinline muted></video>
+          <div class="scan-guide"></div>
+        </div>
+        <div class="camera-controls">
+          <button id="start">▶ Aktifkan Kamera</button>
+          <button id="stop">■ Matikan Kamera</button>
+        </div>
+      </div>
+      <div class="camera-help">
+        Arahkan QR peserta ke dalam bingkai hijau. Data peserta akan tampil
+        otomatis setelah QR berhasil divalidasi.
+      </div>
+    </section>
+
+    <section class="person-card">
+      <div id="judulHasil" class="person-heading">
+        Menunggu pemindaian QR peserta
+      </div>
+      <div class="person-content">
+        <div id="wadahFoto">
+          <div class="photo-placeholder">Foto peserta akan tampil di sini</div>
+        </div>
+        <div>
+          <div class="field">
+            <div class="label">ID PESERTA</div>
+            <div id="idPeserta" class="value">—</div>
+          </div>
+          <div class="field">
+            <div class="label">NAMA PESERTA</div>
+            <div id="nama" class="value">—</div>
+          </div>
+          <div class="field">
+            <div class="label">ASAL SEKOLAH</div>
+            <div id="sekolah" class="value">—</div>
+          </div>
+          <div class="field">
+            <div class="label">WAKTU ABSEN</div>
+            <div id="hasilWaktu" class="value">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <canvas id="canvas"></canvas>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d',{willReadFrequently:true});
+const statusEl = document.getElementById('status');
+const statusDot = document.getElementById('statusDot');
+const judulHasil = document.getElementById('judulHasil');
 
 let stream = null;
 let aktif = false;
 let sedangMemproses = false;
 let qrTerakhir = '';
 let permintaanKehadiran = false;
+let resetQR = null;
 
 const APPS_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbzDYzbjW-CIq-EBKQf1S_s_PTLqzFJAi4yzbLavs5N7pSvRPlM2qZOVrgqE7YSOJFBV/exec';
+'https://script.google.com/macros/s/AKfycbzDYzbjW-CIq-EBKQf1S_s_PTLqzFJAi4yzbLavs5N7pSvRPlM2qZOVrgqE7YSOJFBV/exec';
 
-    document.getElementById('start').onclick = async function () {
-      try {
-        if (!navigator.mediaDevices ||
-            !navigator.mediaDevices.getUserMedia) {
-          throw new Error(
-            'Browser tidak mendukung akses kamera.'
-          );
-        }
-
-        if (typeof jsQR !== 'function') {
-          throw new Error(
-            'Library pembaca QR belum berhasil dimuat.'
-          );
-        }
-
-        hentikanKamera();
-        status.textContent = 'Meminta izin kamera...';
-
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' },
-          audio: false
-        });
-
-        video.srcObject = stream;
-        await video.play();
-
-        aktif = true;
-        qrTerakhir = '';
-        status.textContent =
-          'Kamera aktif. Arahkan QR peserta ke kamera.';
-        requestAnimationFrame(pindai);
-
-      } catch (e) {
-        aktif = false;
-        status.textContent =
-          'GAGAL: ' + e.name + ' — ' + e.message;
-      }
-    };
-
-function tampilkanHasilScan(pesan, berhasil = false) {
-  hasil.textContent = pesan;
-  hasil.style.border = berhasil
-    ? '1px solid #16a34a'
-    : '1px solid #dc2626';
+function setStatus(pesan, jenis='normal') {
+  statusEl.textContent = pesan;
+  statusDot.className = 'dot' + (jenis === 'ok' ? ' ok' : '');
 }
+
+function setJudul(pesan, jenis='normal') {
+  judulHasil.textContent = pesan;
+  judulHasil.className = 'person-heading' +
+    (jenis === 'ok' ? ' success' : jenis === 'error' ? ' error' : '');
+}
+
+function teks(id, nilai) {
+  document.getElementById(id).textContent = nilai || '—';
+}
+
+function tampilkanFoto(url) {
+  const wadah = document.getElementById('wadahFoto');
+  wadah.replaceChildren();
+
+  if (!url) {
+    const kosong = document.createElement('div');
+    kosong.className = 'photo-placeholder';
+    kosong.textContent = 'Foto peserta belum tersedia';
+    wadah.appendChild(kosong);
+    return;
+  }
+
+  const img = document.createElement('img');
+  img.className = 'photo';
+  img.alt = 'Foto peserta';
+  img.referrerPolicy = 'no-referrer';
+  img.src = url;
+  img.onerror = function() {
+    const kosong = document.createElement('div');
+    kosong.className = 'photo-placeholder';
+    kosong.textContent = 'Foto tidak dapat dimuat';
+    wadah.replaceChildren(kosong);
+  };
+  wadah.appendChild(img);
+}
+
+function tampilkanPeserta(data) {
+  teks('idPeserta', data.idPeserta || data.id);
+  teks('nama', data.nama);
+  teks('sekolah', data.sekolah || data.asalSekolah);
+  teks('hasilWaktu', data.waktu);
+  tampilkanFoto(data.foto || data.urlFoto || '');
+}
+
+document.getElementById('start').onclick = async function() {
+  try {
+    if (!navigator.mediaDevices?.getUserMedia)
+      throw new Error('Browser tidak mendukung akses kamera.');
+    if (typeof jsQR !== 'function')
+      throw new Error('Library pembaca QR belum berhasil dimuat.');
+
+    hentikanKamera();
+    setStatus('Meminta izin kamera...');
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:'environment'}, audio:false
+    });
+    video.srcObject = stream;
+    await video.play();
+
+    aktif = true;
+    qrTerakhir = '';
+    setStatus('Kamera aktif. Arahkan QR peserta ke kamera.', 'ok');
+    requestAnimationFrame(pindai);
+  } catch(e) {
+    aktif = false;
+    setStatus('GAGAL: ' + e.name + ' — ' + e.message);
+  }
+};
 
 function kirimQRKeAppsScript(isiQR) {
   if (permintaanKehadiran) return;
 
   const bagian = String(isiQR || '').trim().split('|');
-
-  if (bagian.length !== 2 ||
-      !bagian[0].trim() ||
-      !bagian[1].trim()) {
-    tampilkanHasilScan(
-      'QR tidak sesuai format ID_PESERTA|TOKEN_QR.'
-    );
+  if (bagian.length !== 2 || !bagian[0].trim() || !bagian[1].trim()) {
+    setStatus('Format QR tidak sesuai.');
+    setJudul('QR tidak sesuai format ID_PESERTA|TOKEN_QR.', 'error');
     return;
   }
 
   permintaanKehadiran = true;
-  status.textContent = 'Memvalidasi peserta di server...';
-  tampilkanHasilScan('Memvalidasi QR...');
+  setStatus('Memvalidasi peserta di server...');
+  setJudul('Memvalidasi QR peserta...');
 
-  const id = bagian[0].trim();
-  const token = bagian[1].trim();
-  const callback = 'scanCallback_' +
-    Date.now() + '_' +
-    Math.random().toString(36).slice(2);
-
-  let tag = null;
-  let timer = null;
-  let selesai = false;
+  const callback = 'scanCallback_' + Date.now() +
+    '_' + Math.random().toString(36).slice(2);
+  let tag = null, timer = null, selesai = false;
 
   function bersihkan() {
     if (selesai) return;
     selesai = true;
-
     if (timer) clearTimeout(timer);
     if (tag) tag.remove();
-
     delete window[callback];
     permintaanKehadiran = false;
   }
@@ -171,126 +357,83 @@ function kirimQRKeAppsScript(isiQR) {
     bersihkan();
 
     if (!data || !data.sukses) {
-      status.textContent = 'Validasi gagal.';
-      tampilkanHasilScan(
-        data && data.pesan
-          ? data.pesan
-          : 'Respons server tidak valid.'
-      );
+      setStatus('Validasi peserta gagal.');
+      setJudul(data?.pesan || 'Respons server tidak valid.', 'error');
       return;
     }
 
-    status.textContent = 'Validasi berhasil.';
-    tampilkanHasilScan(
-      (data.nama ? data.nama + '\n' : '') +
-      data.pesan +
-      (data.waktu ? '\nWaktu: ' + data.waktu : ''),
-      true
-    );
+    tampilkanPeserta(data);
+    setStatus('QR berhasil diproses.');
+    setJudul(data.pesan || 'Data peserta ditemukan', 'ok');
+
+    // Hindari pemindaian QR yang sama berulang kali.
+    if (resetQR) clearTimeout(resetQR);
+    resetQR = setTimeout(() => { qrTerakhir = ''; }, 3000);
   };
 
   const query = new URLSearchParams({
-    action: 'scanAttendance',
-    id: id,
-    token: token,
-    callback: callback
+    action:'scanAttendance',
+    id:bagian[0].trim(),
+    token:bagian[1].trim(),
+    callback
   });
 
   tag = document.createElement('script');
   tag.src = APPS_SCRIPT_URL + '?' + query.toString();
-
-tag.onerror = function() {
-  bersihkan();
-
-  status.textContent = 'Gagal memuat respons Apps Script.';
-
-  tampilkanHasilScan(
-    'Browser gagal memuat respons dari Apps Script.\n' +
-    'Periksa URL deployment, izin akses Web App, ' +
-    'dan error pada tab Console/Network.'
-  );
-
-  console.error(
-    'Apps Script URL:',
-    APPS_SCRIPT_URL
-  );
-};
+  tag.onerror = function() {
+    bersihkan();
+    setStatus('Gagal menerima respons Apps Script.');
+    setJudul('Periksa koneksi atau deployment Apps Script.', 'error');
+  };
 
   timer = setTimeout(function() {
     bersihkan();
-    status.textContent = 'Permintaan kehabisan waktu.';
-    tampilkanHasilScan(
-      'Server belum memberi respons. Periksa deployment.'
-    );
+    setStatus('Permintaan kehabisan waktu.');
+    setJudul('Server belum memberikan respons.', 'error');
   }, 20000);
 
   document.head.appendChild(tag);
 }
 
-    function pindai() {
-      if (!aktif || sedangMemproses) return;
+function pindai() {
+  if (!aktif || sedangMemproses) return;
 
-      if (video.readyState >= 2 &&
-          video.videoWidth > 0 &&
-          video.videoHeight > 0) {
-        sedangMemproses = true;
+  if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+    sedangMemproses = true;
+    try {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+      const gambar = ctx.getImageData(0,0,canvas.width,canvas.height);
+      const kode = jsQR(gambar.data,gambar.width,gambar.height,
+        {inversionAttempts:'attemptBoth'});
 
-        try {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+      if (kode?.data && kode.data !== qrTerakhir && !permintaanKehadiran) {
+        qrTerakhir = kode.data;
+        kirimQRKeAppsScript(kode.data);
+      }
+    } catch(e) {
+      console.error(e);
+    }
+    sedangMemproses = false;
+  }
 
-          ctx.drawImage(
-            video, 0, 0, canvas.width, canvas.height
-          );
-
-          const gambar = ctx.getImageData(
-            0, 0, canvas.width, canvas.height
-          );
-
-          const kode = jsQR(
-            gambar.data,
-            gambar.width,
-            gambar.height,
-            { inversionAttempts: 'attemptBoth' }
-          );
-
-          if (kode && kode.data &&
-    kode.data !== qrTerakhir) {
-  qrTerakhir = kode.data;
-  hasil.textContent = kode.data;
-
-  kirimQRKeAppsScript(kode.data);
+  if (aktif) requestAnimationFrame(pindai);
 }
-        } catch (e) {
-          console.error(e);
-        }
 
-        sedangMemproses = false;
-      }
+function hentikanKamera() {
+  aktif = false;
+  if (stream) stream.getTracks().forEach(track => track.stop());
+  stream = null;
+  video.srcObject = null;
+}
 
-      if (aktif) requestAnimationFrame(pindai);
-    }
+document.getElementById('stop').onclick = function() {
+  hentikanKamera();
+  setStatus('Kamera telah dimatikan.');
+};
 
-    function hentikanKamera() {
-      aktif = false;
-
-      if (stream) {
-        stream.getTracks().forEach(function (track) {
-          track.stop();
-        });
-      }
-
-      stream = null;
-      video.srcObject = null;
-    }
-
-    document.getElementById('stop').onclick = function () {
-      hentikanKamera();
-      status.textContent = 'Kamera telah dimatikan.';
-    };
-
-    window.addEventListener('pagehide', hentikanKamera);
-  </script>
-  
+window.addEventListener('pagehide',hentikanKamera);
+</script>
 </body>
 </html>
