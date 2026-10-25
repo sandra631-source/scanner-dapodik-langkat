@@ -121,6 +121,103 @@ const APPS_SCRIPT_URL =
       }
     };
 
+function tampilkanHasilScan(pesan, berhasil = false) {
+  hasil.textContent = pesan;
+  hasil.style.border = berhasil
+    ? '1px solid #16a34a'
+    : '1px solid #dc2626';
+}
+
+function kirimQRKeAppsScript(isiQR) {
+  if (permintaanKehadiran) return;
+
+  const bagian = String(isiQR || '').trim().split('|');
+
+  if (bagian.length !== 2 ||
+      !bagian[0].trim() ||
+      !bagian[1].trim()) {
+    tampilkanHasilScan(
+      'QR tidak sesuai format ID_PESERTA|TOKEN_QR.'
+    );
+    return;
+  }
+
+  permintaanKehadiran = true;
+  status.textContent = 'Memvalidasi peserta di server...';
+  tampilkanHasilScan('Memvalidasi QR...');
+
+  const id = bagian[0].trim();
+  const token = bagian[1].trim();
+  const callback = 'scanCallback_' +
+    Date.now() + '_' +
+    Math.random().toString(36).slice(2);
+
+  let tag = null;
+  let timer = null;
+  let selesai = false;
+
+  function bersihkan() {
+    if (selesai) return;
+    selesai = true;
+
+    if (timer) clearTimeout(timer);
+    if (tag) tag.remove();
+
+    delete window[callback];
+    permintaanKehadiran = false;
+  }
+
+  window[callback] = function(data) {
+    bersihkan();
+
+    if (!data || !data.sukses) {
+      status.textContent = 'Validasi gagal.';
+      tampilkanHasilScan(
+        data && data.pesan
+          ? data.pesan
+          : 'Respons server tidak valid.'
+      );
+      return;
+    }
+
+    status.textContent = 'Validasi berhasil.';
+    tampilkanHasilScan(
+      (data.nama ? data.nama + '\n' : '') +
+      data.pesan +
+      (data.waktu ? '\nWaktu: ' + data.waktu : ''),
+      true
+    );
+  };
+
+  const query = new URLSearchParams({
+    action: 'scanAttendance',
+    id: id,
+    token: token,
+    callback: callback
+  });
+
+  tag = document.createElement('script');
+  tag.src = APPS_SCRIPT_URL + '?' + query.toString();
+
+  tag.onerror = function() {
+    bersihkan();
+    status.textContent = 'Gagal menghubungi server.';
+    tampilkanHasilScan(
+      'Periksa URL dan deployment Apps Script.'
+    );
+  };
+
+  timer = setTimeout(function() {
+    bersihkan();
+    status.textContent = 'Permintaan kehabisan waktu.';
+    tampilkanHasilScan(
+      'Server belum memberi respons. Periksa deployment.'
+    );
+  }, 20000);
+
+  document.head.appendChild(tag);
+}
+
     function pindai() {
       if (!aktif || sedangMemproses) return;
 
@@ -149,12 +246,12 @@ const APPS_SCRIPT_URL =
           );
 
           if (kode && kode.data &&
-              kode.data !== qrTerakhir) {
-            qrTerakhir = kode.data;
-            hasil.textContent = kode.data;
-            status.textContent =
-              'QR berhasil dibaca. Siap memeriksa data.';
-          }
+    kode.data !== qrTerakhir) {
+  qrTerakhir = kode.data;
+  hasil.textContent = kode.data;
+
+  kirimQRKeAppsScript(kode.data);
+}
         } catch (e) {
           console.error(e);
         }
