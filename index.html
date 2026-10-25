@@ -199,13 +199,22 @@ function kirimQRKeAppsScript(isiQR) {
   tag = document.createElement('script');
   tag.src = APPS_SCRIPT_URL + '?' + query.toString();
 
-  tag.onerror = function() {
-    bersihkan();
-    status.textContent = 'Gagal menghubungi server.';
-    tampilkanHasilScan(
-      'Periksa URL dan deployment Apps Script.'
-    );
-  };
+tag.onerror = function() {
+  bersihkan();
+
+  status.textContent = 'Gagal memuat respons Apps Script.';
+
+  tampilkanHasilScan(
+    'Browser gagal memuat respons dari Apps Script.\n' +
+    'Periksa URL deployment, izin akses Web App, ' +
+    'dan error pada tab Console/Network.'
+  );
+
+  console.error(
+    'Apps Script URL:',
+    APPS_SCRIPT_URL
+  );
+};
 
   timer = setTimeout(function() {
     bersihkan();
