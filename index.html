@@ -503,13 +503,32 @@ function tampilkanFoto(url) {
   wadah.appendChild(img);
 }
 
+
 function tampilkanPeserta(data) {
-  teks('idPeserta', data.idPeserta || data.id);
-  teks('nama', data.nama);
-  teks('sekolah', data.sekolah || data.asalSekolah);
-  teks('hasilWaktu', data.waktu);
-  tampilkanFoto(data.foto || data.urlFoto || '');
+  if (!data) {
+    console.error('Data peserta kosong.');
+    return;
+  }
+
+  teks('idPeserta', data.idPeserta || data.id || '-');
+  teks('nama', data.nama || '-');
+  teks('sekolah', data.sekolah || data.asalSekolah || '-');
+  teks('hasilWaktu', data.waktu || '-');
+
+  // Periksa beberapa kemungkinan nama properti foto.
+  const foto =
+    data.foto ||
+    data.urlFoto ||
+    data.linkFoto ||
+    data.fotoPeserta ||
+    '';
+
+  console.log('Data peserta:', data);
+  console.log('URL foto peserta:', foto);
+
+  tampilkanFoto(foto);
 }
+
 
 async function mulaiKamera() {
   const sesiIni = ++nomorSesiKamera;
